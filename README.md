@@ -81,6 +81,8 @@ To test real-time announcements, you can either:
 
 You can access the deployed frontend at https://feature-announcement-frontend.onrender.com and the backend at https://feature-announcement-backend.onrender.com
 
+Demo Video - https://drive.google.com/file/d/1NokPOjJJDQeqqv6mEkcA1-jMoGxEWbr3/view?usp=drive_link
+
 ### Future Scope
 
 #### User Management: We can introduce a user management system where users can onboard themselves and roles can be aligned to each user.
