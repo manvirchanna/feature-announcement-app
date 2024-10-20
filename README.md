@@ -28,3 +28,53 @@ Before you start, make sure you have the following installed:
 ```bash
 git clone https://github.com/manvirchanna/feature-announcement-app.git
 cd feature-announcement-app
+```
+
+### 2. Install Dependencies
+Install the dependencies for both the backend and frontend applications:
+
+```bash
+# Install backend dependencies
+cd feature-announcement-backend
+npm install
+
+# Install frontend dependencies
+cd feature-announcement-frontend
+npm install
+```
+
+### 3. Run the Backend
+Start the backend server by navigating to the feature-announcement-backend directory and running:
+
+```bash
+cd feature-announcement-backend
+npm start
+```
+
+### 4. Run the Frontend
+Start the frontend server by navigating to the feature-announcement-frontend directory and running:
+
+```bash
+cd ../feature-announcement-frontend
+npm start
+```
+
+### 5. Requesting New Announcements
+
+To test real-time announcements, you can either:
+
+#### Option 1: Using WebSocket Connections
+
+1. **WebSocket Setup**:
+   The backend is set up to broadcast new feature announcements via WebSockets. When a new feature is pushed to the backend, it is immediately sent to all connected frontend clients. The frontend automatically listens to these WebSocket messages and displays the new announcement in real-time.
+
+2. **Pushing a New Announcement**:
+   - You can simulate pushing a new feature to the WebSocket from the backend by sending a message in the correct format through WebSocket clients like http://localhost:3001/add-feature from your backend code. You can send a JSON object representing a new feature. For example:
+
+   ```json
+   {
+     "id": 4,
+     "title": "Feature D",
+     "description": "This is a newly announced feature."
+   }
+
