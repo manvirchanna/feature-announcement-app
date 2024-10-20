@@ -80,3 +80,11 @@ To test real-time announcements, you can either:
 
 
 You can access the deployed frontend at https://feature-announcement-frontend.onrender.com and the backend at https://feature-announcement-backend.onrender.com
+
+### Future Scope
+
+#### User Management: We can introduce a user management system where users can onboard themselves and roles can be aligned to each user.
+
+#### Admin Portal: An admin portal can be developed where admins can post announcements and select specific user groups for each announcement. For example, certain announcements might only be for admins, while others are for normal users.
+
+#### UI Enhancements: Like social media platforms, we can add a bell icon at the top to enhance the notification experience. The bell icon can show the count of new notifications, and upon clicking, it can display recent notifications as well as some older ones.
