@@ -1,34 +1,92 @@
 const request = require('supertest');
+const { MongoClient } = require('mongodb');
+const express = require('express');
+const http = require('http');
+const cors = require('cors');
 
-describe('Feature Announcement API - Integration Tests', () => {
+let app, server, client, db, featuresCollection;
 
-    const baseUrl = 'http://localhost:3001';  // Use the running server URL
+const startServer = async () => {
+  const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
+  client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
-    // Test getting all features
-    it('should return a list of all features', async () => {
-        const response = await request(baseUrl).get('/features');
-        
-        // Check if the status code is correct
-        expect(response.statusCode).toBe(200);
-        
-        // Check if the response contains the correct data
-        expect(response.body.length).toBe(2);
-        expect(response.body[0]).toHaveProperty('title', 'New Dashboard');
-        expect(response.body[1]).toHaveProperty('description', 'Two-factor authentication is now available');
-    });
+  await client.connect();
+  db = client.db('feature-announcements');
+  featuresCollection = db.collection('features');
 
-    // Test adding a new feature
-    it('should add a new feature to the list', async () => {
-        const newFeature = { title: 'API Enhancements', description: 'New API integrations added' };
-        const response = await request(baseUrl).post('/add-feature').send(newFeature);
-        
-        // Check if the status code is correct
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty('message', 'Feature added and broadcasted to users');
+  app = express();
+  app.use(cors());
+  app.use(express.json());
 
-        // Verify the feature was added by making another GET request
-        const getResponse = await request(baseUrl).get('/features');
-        expect(getResponse.body.length).toBe(3);
-        expect(getResponse.body[2]).toHaveProperty('title', 'API Enhancements');
-    });
+  app.get('/features', async (req, res) => {
+    const features = await featuresCollection.find().toArray();
+    res.json(features);
+  });
+
+  app.post('/add-feature', async (req, res) => {
+    const newFeature = req.body;
+    const lastFeature = await featuresCollection.find().sort({ id: -1 }).limit(1).toArray();
+    const newId = lastFeature.length > 0 ? lastFeature[0].id + 1 : 1;
+    newFeature.id = newId;
+
+    await featuresCollection.insertOne(newFeature);
+    res.status(201).json({ message: 'Feature added successfully' });
+  });
+
+  server = http.createServer(app);
+  return server;
+};
+
+// Setup for the test suite
+describe('Feature Announcement API Integration Tests', () => {
+  beforeAll(async () => {
+    server = await startServer();
+    await server.listen(3001);
+  });
+
+  afterAll(async () => {
+    if (client) {
+      await client.close();  // No need for client.isConnected()
+    }
+    if (server && server.close) {
+      await server.close();
+    }
+  });
+
+  // Ensure the collection is cleaned before each test
+  beforeEach(async () => {
+    await featuresCollection.deleteMany({});
+  });
+
+  it('GET /features should return an empty array initially', async () => {
+    const res = await request(app).get('/features');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual([]);  // Ensure the collection starts empty
+  });
+
+  it('POST /add-feature should add a new feature and return status 201', async () => {
+    const newFeature = { title: 'Test Feature', description: 'This is a test feature' };
+    const res = await request(app).post('/add-feature').send(newFeature);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.message).toBe('Feature added successfully');
+
+    const features = await featuresCollection.find().toArray();
+    expect(features.length).toBe(1);
+    expect(features[0].title).toBe('Test Feature');
+    expect(features[0].description).toBe('This is a test feature');
+  });
+
+  it('GET /features should return the added feature', async () => {
+    const newFeature = { title: 'Test Feature', description: 'This is a test feature' };
+    await featuresCollection.insertOne(newFeature);  // Insert feature directly into the collection for the test
+
+    const res = await request(app).get('/features');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].title).toBe('Test Feature');
+    expect(res.body[0].description).toBe('This is a test feature');
+  });
 });

@@ -4,7 +4,7 @@ const cors = require('cors');
 const WebSocket = require('ws');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
-const uri = "mongodb+srv://<username>:<password>@cluster0.ob343.mongodb.net/";
+const uri = "mongodb://localhost:27017/";
 
 let db, featuresCollection;
 
